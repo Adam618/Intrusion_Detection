@@ -22,6 +22,7 @@ plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 num_classes = 5
 batch_size = 256
 train_epoch = 50
+lr = 0.0001
 main_model = 'CNN_LSTM'  # CNN_LSTM
 train_test = 'train'  # train / test
 seed_value = 42  # 设置随机种子以确保可重复性
@@ -52,7 +53,7 @@ cuda_avail = torch.cuda.is_available()
 if main_model == 'CNN_LSTM':
     model = models.CNN_LSTM(num_classes=num_classes).to(device)
 
-optimizer = Adam(model.parameters(), lr=0.0001, weight_decay=0.001)
+optimizer = Adam(model.parameters(), lr=lr, weight_decay=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
 # model_save_path = os.path.join("./train_model", main_model)
