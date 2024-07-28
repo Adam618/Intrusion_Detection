@@ -14,17 +14,28 @@ from sklearn.manifold import TSNE
 import models
 from SeriesDataset import SeriesDataset
 from datetime import datetime
+import sys
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+
+# 将父目录添加到系统路径
+sys.path.append(parent_dir)
+
+from Dataset.dataset import handle
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 'WenQuanYi Zen Hei' 是一种常用的开源中文字体
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
-
-
+# info = 'origin'
+info = 'boderline_smotenc'
 num_classes = 5
-batch_size = 256
+batch_size = 512
 train_epoch = 50
-lr = 0.0001
+# origin
+# lr = 0.0001
+# boderline_smotenc
+# lr = 0.000001
+lr = 0.001
 main_model = 'CNN_LSTM'  # CNN_LSTM
-train_test = 'train'  # train / test
+train_test = 'test'  # train / test
 seed_value = 42  # 设置随机种子以确保可重复性
 os.environ['PYTHONHASHSEED'] = str(seed_value)  # 设置 PYTHONHASHSEED 环境变量
 random.seed(seed_value)  # 设置 Python 的随机种子
@@ -38,8 +49,9 @@ def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)
         return True
-
-
+if train_test == 'train':
+    handle('/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/原始数据集/KDDTrain+.csv', '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/原始数据集/KDDTest+.csv', 
+        '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTrain+_progressed.csv', '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTest+_progressed.csv')
 train_set = SeriesDataset(train=True)
 test_set = SeriesDataset(train=False)
 
@@ -59,7 +71,7 @@ loss_fn = nn.CrossEntropyLoss()
 # model_save_path = os.path.join("./train_model", main_model)
 # mkdir(model_save_path)
 
-info = 'origin'
+
 model_save_path = os.path.join("./train_model", f"{main_model}_{info}")
 mkdir(model_save_path)
 

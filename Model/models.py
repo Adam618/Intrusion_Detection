@@ -48,10 +48,10 @@ class CNN_LSTM(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], x.shape[2])
         x1 = self.encoder1(x)
         #print("Encoder 1 output shape:", x.shape)
-        # x2 = self.encoder2(x)
+        x2 = self.encoder2(x)
         #print("Encoder 2 output shape:", x.shape)
-        # x = torch.cat((x1, x2), dim=1)
-        x = x1
+        x = torch.cat((x1, x2), dim=1)
+        # x = x2
         # print("x.shape", x.shape)
         x, _ = self.lstm_layer(x)
         output = x[:, -1, :]
