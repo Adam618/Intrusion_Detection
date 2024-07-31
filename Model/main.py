@@ -35,7 +35,7 @@ train_epoch = 50
 # lr = 0.000001
 lr = 0.001
 main_model = 'CNN_LSTM'  # CNN_LSTM
-train_test = 'test'  # train / test
+train_test = 'train'  # train / test
 seed_value = 42  # 设置随机种子以确保可重复性
 os.environ['PYTHONHASHSEED'] = str(seed_value)  # 设置 PYTHONHASHSEED 环境变量
 random.seed(seed_value)  # 设置 Python 的随机种子
