@@ -15,6 +15,7 @@ import models
 from SeriesDataset import SeriesDataset
 from datetime import datetime
 import sys
+import argparse
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 # 将父目录添加到系统路径
@@ -24,23 +25,50 @@ from Dataset.dataset import handle
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 'WenQuanYi Zen Hei' 是一种常用的开源中文字体
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
+
+parser = argparse.ArgumentParser(description="Set hyperparameters for training or testing the model.")
+parser.add_argument('--smote_type', type=str, default='none', help="Type of smeote ['none','smote','smotenc','borderline','kmeans','boderline_smotenc']")
+parser.add_argument('--k_neighbors', type=int, default=10, help="k_neighbors")
+parser.add_argument('--sampling_strategy', type=dict, default={1:45927+500 ,2: 11656+1000, 3:995+2000 , 4:52+5000}, help='')
+parser.add_argument('--num_classes', type=int, default=5, help='Number of classes in the dataset')
+parser.add_argument('--batch_size', type=int, default=512, help='Batch size for training')
+parser.add_argument('--train_epoch', type=int, default=50, help='Number of training epochs')
+parser.add_argument('--lr', type=float, default=0.001, help='Learning rate for the optimizer')
+parser.add_argument('--main_model', type=str, default='CNN_LSTM', help='The main model architecture')
+parser.add_argument('--train_test', type=str, default='train', help='Specify whether to train or test the model')
+parser.add_argument('--seed_value', type=int, default=42, help='Random seed for reproducibility')
+
+
+args = parser.parse_args()
+
+# sampling = args.sampling
+# num_classes = args.num_classes
+# batch_size = args.batch_size
+# train_epoch = args.train_epoch
+# lr = args.lr
+# main_model = args.main_model
+# train_test = args.train_test
+# seed_value = args.seed_value
+
+
 # info = 'origin'
-info = 'boderline_smotenc'
-num_classes = 5
-batch_size = 512
-train_epoch = 50
-# origin
-# lr = 0.0001
-# boderline_smotenc
-# lr = 0.000001
-lr = 0.001
-main_model = 'CNN_LSTM'  # CNN_LSTM
-train_test = 'train'  # train / test
-seed_value = 42  # 设置随机种子以确保可重复性
-os.environ['PYTHONHASHSEED'] = str(seed_value)  # 设置 PYTHONHASHSEED 环境变量
-random.seed(seed_value)  # 设置 Python 的随机种子
-np.random.seed(seed_value)  # 设置 NumPy 的随机种子
-torch.manual_seed(seed_value)  # 设置 PyTorch 的随机种子
+# info = 'boderline_smotenc'
+# num_classes = 5
+# batch_size = 512
+# train_epoch = 50
+# # origin
+# # lr = 0.0001
+# # boderline_smotenc
+# # lr = 0.000001
+# lr = 0.001
+# main_model = 'CNN_LSTM'  # CNN_LSTM
+# train_test = 'train'  # train / test
+# seed_value = 42  # 设置随机种子以确保可重复性
+
+os.environ['PYTHONHASHSEED'] = str(args.seed_value)  # 设置 PYTHONHASHSEED 环境变量
+random.seed(args.seed_value)  # 设置 Python 的随机种子
+np.random.seed(args.seed_value)  # 设置 NumPy 的随机种子
+torch.manual_seed(args.seed_value)  # 设置 PyTorch 的随机种子
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 np.set_printoptions(threshold=np.inf)
 
@@ -49,30 +77,32 @@ def mkdir(path):
     if not os.path.exists(path):
         os.makedirs(path)
         return True
-if train_test == 'train':
+if args.train_test == 'train':
     handle('/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/原始数据集/KDDTrain+.csv', '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/原始数据集/KDDTest+.csv', 
-        '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTrain+_progressed.csv', '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTest+_progressed.csv')
+        '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTrain+_progressed.csv', '/root/autodl-tmp/7.15_网络入侵检测/CNN-LSTM/Dataset/NSL-KDD/KDDTest+_progressed.csv', args)
+    
+
 train_set = SeriesDataset(train=True)
 test_set = SeriesDataset(train=False)
 
-train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4)
-test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=True, num_workers=4)
+train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, num_workers=4)
+test_loader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
 # Check if gpu support is available
 cuda_avail = torch.cuda.is_available()
 
 # Create model, optimizer and loss function
-if main_model == 'CNN_LSTM':
-    model = models.CNN_LSTM(num_classes=num_classes).to(device)
+if args.main_model == 'CNN_LSTM':
+    model = models.CNN_LSTM(num_classes=args.num_classes).to(device)
 
-optimizer = Adam(model.parameters(), lr=lr, weight_decay=0.001)
+optimizer = Adam(model.parameters(), lr=args.lr, weight_decay=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
 # model_save_path = os.path.join("./train_model", main_model)
 # mkdir(model_save_path)
 
 
-model_save_path = os.path.join("./train_model", f"{main_model}_{info}")
+model_save_path = os.path.join("./train_model", f"{args.main_model}_{args.smote_type}")
 mkdir(model_save_path)
 
 def save_models(epoch):
@@ -360,8 +390,8 @@ def train(num_epochs):
 
 
 if __name__ == "__main__":
-    if train_test == 'train':
-        train(train_epoch)
-    elif train_test == 'test':
+    if args.train_test == 'train':
+        train(args.train_epoch)
+    elif args.train_test == 'test':
         test_acc, test_loss, run_time, precision, recall, f1, fpr, g_means, binary_accuracy = test_model(True)
         print(' Test Accuracy', test_acc, ' Test Loss', test_loss, ' Run Time', run_time, ' Precision', precision, ' Recall', recall, ' F1', f1, ' FPR', fpr, ' G-means', g_means, ' Binary Accuracy', binary_accuracy)
